@@ -143,7 +143,7 @@ try:
                         previous_views, previous_time = last_two_rows[1]
                         
                         views_diff = views - current_views
-                        delta = 1 - (views_diff / (current_views - previous_views))
+                        delta = (views_diff / (current_views - previous_views)) - 1
                         pace_per_hour = (views_diff / WAIT) * 60
                         pace_24h = pace_per_hour * 24
 
