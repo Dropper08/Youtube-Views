@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 WAIT = 1  # Tempo de espera entre as requisições (em minutos)
 
 # 🔑 Configuração do banco PostgreSQL (exemplo Railway)
-DATABASE_URL = 'postgresql://postgres:ljzViysZxXxrRLhvuhMRWorUIJKEdoCF@postgres.railway.internal:5432/railway'  # coloque seus dados aqui
+DATABASE_URL = 'postgresql://postgres:cLgkdZzJkpllnKxHvNniMgbKHVEgLeMC@postgres.railway.internal:5432/railway'  # coloque seus dados aqui
 
 # 🎥 Lista dos vídeos que você quer monitorar
 VIDEOS = [
