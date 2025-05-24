@@ -8,14 +8,14 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import sessionmaker
 
 
-WAIT = 1  # Tempo de espera entre as requisições (em minutos)
+WAIT = 5  # Tempo de espera entre as requisições (em minutos)
 
 # 🔑 Configuração do banco PostgreSQL (exemplo Railway)
 DATABASE_URL = 'postgresql://postgres:cLgkdZzJkpllnKxHvNniMgbKHVEgLeMC@postgres.railway.internal:5432/railway'  # coloque seus dados aqui
 
 # 🎥 Lista dos vídeos que você quer monitorar
 VIDEOS = [
-    {'video_id': '-4GmbBoYQjE', 'titulo': 'I Explored 2000 Year Old Ancient Temples'}
+    {'video_id': 'DZIASl9q90s', 'titulo': 'Beat Neymar, Win $500,000'}
 ]
 
 # 🔑 API KEY do YouTube
@@ -129,26 +129,24 @@ try:
 
                 if views is not None:
                     # Buscar última entrada para esse vídeo
-                    last_view_row = conn.execute(
+                    last_two_rows= conn.execute(
                         text("""
                             SELECT views, horario FROM views
                             WHERE video_id = :video_id
                             ORDER BY horario DESC
-                            LIMIT 1
+                            LIMIT 2
                         """), {'video_id': video_id}
-                    ).fetchone()
+                    ).fetchall()
 
-                    if last_view_row:
-                        last_views, last_horario = last_view_row
-                        views_diff = views - last_views
-                        time_diff = (agora_brasilia - last_horario).total_seconds() / 3600  # horas
+                    if len(last_two_rows) == 2:
+                        current_views, current_time = last_two_rows[0]
+                        previous_views, previous_time = last_two_rows[1]
+                        
+                        views_diff = views - current_views
+                        delta = 1 - (views_diff / (current_views - previous_views))
+                        pace_per_hour = (views_diff / WAIT) * 60
+                        pace_24h = pace_per_hour * 24
 
-                        if time_diff > 0:
-                            pace_per_hour = views_diff / time_diff
-                            pace_24h = pace_per_hour * 24
-                        else:
-                            pace_per_hour = 0
-                            pace_24h = 0
                     else:
                         views_diff = 0
                         pace_per_hour = 0
@@ -170,6 +168,7 @@ try:
                         f"ID: {video_id}\n"
                         f"Views: <b>{views}</b>\n"
                         f"Desde a última: <b>{views_diff}</b> views\n"
+                        f"Delta: <b>{delta:.2%}</b>\n"
                         f"Pace estimado para 24h: <b>{int(pace_24h)}</b> views\n"
                         f"Horário (BR): {agora_brasilia.strftime('%Y-%m-%d %H:%M:%S')}"
                     )
