@@ -3,30 +3,49 @@ import time
 from datetime import datetime, timedelta
 import pytz
 import pandas as pd
-from sqlalchemy import create_engine, Table, Column, Integer, String, DateTime, MetaData
+from sqlalchemy import create_engine, Column, String, Integer, TIMESTAMP, ForeignKey, Table, MetaData, insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.orm import sessionmaker
 
-# 👉 Configurações da API e vídeo
+
+# 🔑 Configuração do banco PostgreSQL (exemplo Railway)
+DATABASE_URL = 'postgresql://postgres:DqVPbefCrJJneICVKwPTOUozzSmUjusn@postgres.railway.internal:5432/railway'  # coloque seus dados aqui
+
+# 🎥 Lista dos vídeos que você quer monitorar
+VIDEOS = [
+    {'video_id': '-4GmbBoYQjE', 'titulo': 'I Explored 2000 Year Old Ancient Temples'}
+]
+
+# 🔑 API KEY do YouTube
 API_KEY = 'AIzaSyACx1i4XGXJjRvQJukTTvZCvD6FNexhgmg'
-VIDEO_ID = '-4GmbBoYQjE'
 
-# 👉 Configurações do banco PostgreSQL (Railway)
-DB_URL = 'postgresql://postgres:DqVPbefCrJJneICVKwPTOUozzSmUjusn@postgres.railway.internal:5432/railway'
-
-# 👉 Cria engine do SQLAlchemy
-engine = create_engine(DB_URL)
+# 🚀 Conexão com o banco
+engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 
-# 👉 Define a tabela (se não existir, cria)
-views_table = Table(
-    'youtube_views', metadata,
-    Column('id', Integer, primary_key=True, autoincrement=True),
-    Column('horario', DateTime(timezone=True)),
-    Column('views', Integer)
+# 🏗️ Definindo as tabelas
+videos_table = Table(
+    'videos', metadata,
+    Column('video_id', String, primary_key=True),
+    Column('titulo', String, nullable=False),
+    Column('criado_em', TIMESTAMP(timezone=True), nullable=False, default=datetime.now(pytz.UTC))
 )
 
+views_table = Table(
+    'views', metadata,
+    Column('video_id', String, ForeignKey('videos.video_id', ondelete="CASCADE"), primary_key=True),
+    Column('horario', TIMESTAMP(timezone=True), primary_key=True),
+    Column('views', Integer, nullable=False)
+)
+
+# 🔧 Cria as tabelas se não existirem
 metadata.create_all(engine)
 
-# 👉 Função para buscar dados do vídeo
+# Sessão
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# 📡 Função para pegar as views
 def get_video_stats(video_id, api_key):
     url = (
         f'https://www.googleapis.com/youtube/v3/videos'
@@ -46,8 +65,16 @@ def get_video_stats(video_id, api_key):
         print(f'Erro {response.status_code}: {response.text}')
         return None
 
+# ✅ Insere os vídeos na tabela se não existirem
+with engine.begin() as conn:
+    for video in VIDEOS:
+        stmt = pg_insert(videos_table).values(
+            video_id=video['video_id'],
+            titulo=video['titulo']
+        ).on_conflict_do_nothing()
+        conn.execute(stmt)
 
-# 👉 Alinha para o próximo múltiplo de 5 minutos
+# ⏰ Alinha para o próximo múltiplo de 5 minutos
 brasilia_tz = pytz.timezone('America/Sao_Paulo')
 agora = datetime.now(brasilia_tz)
 
@@ -64,73 +91,39 @@ espera_segundos = (proximo_bloco - agora).total_seconds()
 print(f"Aguardando {espera_segundos:.1f} segundos para começar em {proximo_bloco.strftime('%H:%M:%S')}")
 time.sleep(espera_segundos)
 
-# 👉 Inicializa variáveis
-previous_views = None
-previous_time = None
-previous_delta = None
-
 try:
     while True:
-        agora_brasilia = datetime.now(brasilia_tz)
-        views = get_video_stats(VIDEO_ID, API_KEY)
-        hora = agora_brasilia
+        agora_brasilia = datetime.now(brasilia_tz).replace(second=0, microsecond=0)
 
-        if views is not None:
-            print(f'Views at {hora.strftime("%Y-%m-%d %H:%M:%S")} : {views}')
+        with engine.begin() as conn:
+            for video in VIDEOS:
+                video_id = video['video_id']
+                views = get_video_stats(video_id, API_KEY)
 
-            # 👉 Salva no banco de dados
-            with engine.connect() as conn:
-                conn.execute(views_table.insert().values(horario=hora, views=views))
+                if views is not None:
+                    print(f'[{agora_brasilia.strftime("%Y-%m-%d %H:%M:%S")}] {video_id}: {views} views')
 
-            # 👉 Lê dados do banco para análise
-            df = pd.read_sql_table('youtube_views', con=engine)
-            df['horario'] = pd.to_datetime(df['horario']).dt.tz_localize('UTC').dt.tz_convert('America/Sao_Paulo')
-            df = df.sort_values('horario')
+                    stmt = pg_insert(views_table).values(
+                        video_id=video_id,
+                        horario=agora_brasilia,
+                        views=views
+                    ).on_conflict_do_nothing()
 
-            if previous_views is not None:
-                delta_views = views - previous_views
-                minutes_passed = (agora_brasilia - previous_time).total_seconds() / 60
-                if minutes_passed > 0:
-                    views_per_hour = (delta_views / minutes_passed) * 60
+                    conn.execute(stmt)
                 else:
-                    views_per_hour = 0
-                if previous_delta is not None and previous_delta != 0:
-                    print(f'Ganhos nos últimos {minutes_passed:.0f} minutos: \n{delta_views} views : {((delta_views/previous_delta)-1)*100:.2f}% delta')
-                else:
-                    print(f'Ganhos nos últimos {minutes_passed:.0f} minutos: {delta_views} views')
-
-                previous_delta = delta_views
-                print(f'Média estimada por hora: {views_per_hour:.2f} views/hora')
-            else:
-                print('Primeira medição — aguardando próxima para calcular diferenças.')
-
-            previous_views = views
-            previous_time = agora_brasilia
-
-            # 📊 Cálculo últimos 15 e 30 minutos
-            def get_delta_views(df, minutos):
-                limite = agora_brasilia - timedelta(minutes=minutos)
-                df_filtrado = df[df['horario'] >= limite]
-                if len(df_filtrado) >= 2:
-                    return df_filtrado['views'].iloc[-1] - df_filtrado['views'].iloc[0]
-                return 0
-
-            v15 = get_delta_views(df, 15)
-            v30 = get_delta_views(df, 30)
-
-            print(f'↳ Total nos últimos 15 minutos: {v15} views')
-            print(f'↳ Total nos últimos 30 minutos: {v30} views')
-
-        else:
-            print("Não foi possível obter as views.")
+                    print(f'Não conseguiu obter views para {video_id}')
 
         # 👉 Espera até o próximo múltiplo de 5 minutos
         agora = datetime.now(brasilia_tz)
         minutos_atuais = agora.minute
         minutos_proximo_bloco = ((minutos_atuais // 5) + 1) * 5
-        proximo_bloco = agora.replace(minute=0, second=0, microsecond=0) + timedelta(minutes=minutos_proximo_bloco)
+        if minutos_proximo_bloco == 60:
+            proximo_bloco = (agora.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
+        else:
+            proximo_bloco = agora.replace(minute=minutos_proximo_bloco, second=0, microsecond=0)
+
         espera_segundos = (proximo_bloco - agora).total_seconds()
-        print(f"Próxima coleta marcada para {proximo_bloco.strftime('%H:%M:%S')} (em {espera_segundos:.1f} segundos)\n")
+        print(f"Próxima coleta às {proximo_bloco.strftime('%H:%M:%S')} (em {espera_segundos:.1f} segundos)\n")
         time.sleep(espera_segundos)
 
 except KeyboardInterrupt:
