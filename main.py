@@ -21,6 +21,25 @@ VIDEOS = [
 # 🔑 API KEY do YouTube
 API_KEY = 'AIzaSyACx1i4XGXJjRvQJukTTvZCvD6FNexhgmg'
 
+
+# Telegram bot config
+TELEGRAM_BOT_TOKEN = '8134403690:AAHU8PXdmMKI2Ag_kXHjRnO0ZpKvJlOejwQ'  # coloque o token do seu bot
+TELEGRAM_CHAT_ID = '5423161617'  # coloque o chat id do destinatário
+
+def send_telegram_message(message: str):
+    url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
+    payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': message,
+        'parse_mode': 'HTML'
+    }
+    try:
+        resp = requests.post(url, data=payload)
+        if resp.status_code != 200:
+            print(f'Erro ao enviar mensagem no Telegram: {resp.status_code} - {resp.text}')
+    except Exception as e:
+        print(f'Exception ao enviar mensagem no Telegram: {e}')
+
 def now_brasilia():
     return datetime.now(pytz.timezone('America/Sao_Paulo'))
 
@@ -44,27 +63,18 @@ def wait_time():
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 
+# 🏗️ Definindo as tabelas
 videos_table = Table(
     'videos', metadata,
     Column('video_id', String, primary_key=True),
     Column('titulo', String, nullable=False),
-    Column(
-        'criado_em',
-        TIMESTAMP(timezone=True),
-        nullable=False,
-        server_default=text("TIMEZONE('America/Sao_Paulo', now())")
-    )
+    Column('criado_em', TIMESTAMP(timezone=True), nullable=False, default=now_brasilia)
 )
 
 views_table = Table(
     'views', metadata,
     Column('video_id', String, ForeignKey('videos.video_id', ondelete="CASCADE"), primary_key=True),
-    Column(
-        'horario',
-        TIMESTAMP(timezone=True),
-        primary_key=True,
-        server_default=text("TIMEZONE('America/Sao_Paulo', now())")
-    ),
+    Column('horario', TIMESTAMP(timezone=True), primary_key=True, default=now_brasilia),
     Column('views', Integer, nullable=False)
 )
 
@@ -127,6 +137,16 @@ try:
                     ).on_conflict_do_nothing()
 
                     conn.execute(stmt)
+
+                    # Envia mensagem para Telegram
+                    mensagem = (
+                        f"📊 Atualização de views:\n"
+                        f"Vídeo: <b>{video['titulo']}</b>\n"
+                        f"ID: {video_id}\n"
+                        f"Views: <b>{views}</b>\n"
+                        f"Horário (BR): {agora_brasilia.strftime('%Y-%m-%d %H:%M:%S')}"
+                    )
+                    send_telegram_message(mensagem)
                 else:
                     print(f'Não conseguiu obter views para {video_id}')
 
