@@ -8,6 +8,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import sessionmaker
 
 
+WAIT = 1  # Tempo de espera entre as requisições (em minutos)
+
 # 🔑 Configuração do banco PostgreSQL (exemplo Railway)
 DATABASE_URL = 'postgresql://postgres:DqVPbefCrJJneICVKwPTOUozzSmUjusn@postgres.railway.internal:5432/railway'  # coloque seus dados aqui
 
@@ -19,6 +21,9 @@ VIDEOS = [
 # 🔑 API KEY do YouTube
 API_KEY = 'AIzaSyACx1i4XGXJjRvQJukTTvZCvD6FNexhgmg'
 
+def now_brasilia():
+    return datetime.now(pytz.timezone('America/Sao_Paulo'))
+
 # 🚀 Conexão com o banco
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
@@ -28,13 +33,13 @@ videos_table = Table(
     'videos', metadata,
     Column('video_id', String, primary_key=True),
     Column('titulo', String, nullable=False),
-    Column('criado_em', TIMESTAMP(timezone=True), nullable=False, default=datetime.now(pytz.UTC))
+    Column('criado_em', TIMESTAMP(timezone=True), nullable=False, default=now_brasilia)
 )
 
 views_table = Table(
     'views', metadata,
     Column('video_id', String, ForeignKey('videos.video_id', ondelete="CASCADE"), primary_key=True),
-    Column('horario', TIMESTAMP(timezone=True), primary_key=True),
+    Column('horario', TIMESTAMP(timezone=True), primary_key=True, default=now_brasilia),
     Column('views', Integer, nullable=False)
 )
 
@@ -79,7 +84,7 @@ brasilia_tz = pytz.timezone('America/Sao_Paulo')
 agora = datetime.now(brasilia_tz)
 
 minutos_atuais = agora.minute
-minutos_proximo_bloco = ((minutos_atuais // 5) + 1) * 5
+minutos_proximo_bloco = ((minutos_atuais // WAIT) + 1) * WAIT
 
 if minutos_proximo_bloco == 60:
     proximo_bloco = (agora.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
