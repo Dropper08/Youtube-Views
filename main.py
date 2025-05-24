@@ -72,6 +72,7 @@ def get_video_stats(video_id, api_key):
 
 # ✅ Insere os vídeos na tabela se não existirem
 with engine.begin() as conn:
+    conn.execute("ALTER DATABASE railway SET timezone TO 'America/Sao_Paulo';")
     for video in VIDEOS:
         stmt = pg_insert(videos_table).values(
             video_id=video['video_id'],
@@ -121,7 +122,7 @@ try:
         # 👉 Espera até o próximo múltiplo de 5 minutos
         agora = datetime.now(brasilia_tz)
         minutos_atuais = agora.minute
-        minutos_proximo_bloco = ((minutos_atuais // 5) + 1) * 5
+        minutos_proximo_bloco = ((minutos_atuais // WAIT) + 1) * WAIT
         if minutos_proximo_bloco == 60:
             proximo_bloco = (agora.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
         else:
