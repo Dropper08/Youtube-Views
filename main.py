@@ -118,6 +118,11 @@ with engine.begin() as conn:
 brasilia_tz = pytz.timezone('America/Sao_Paulo')
 time.sleep(wait_time())
 
+
+df = pd.read_csv("Dados_finais_corrigidos.csv")
+# Converte a coluna 'horario' para datetime sem timezone
+df["horario"] = pd.to_datetime(df["horario"]).dt.tz_localize(None)
+
 try:
     while True:
         agora_brasilia = datetime.now(brasilia_tz).replace(second=0, microsecond=0)
@@ -126,6 +131,13 @@ try:
             for video in VIDEOS:
                 video_id = video['video_id']
                 views = get_video_stats(video_id, API_KEY)
+                horario_atual = datetime.now(brasilia_tz).replace(second=0, microsecond=0).time()
+                try:
+                    # Tentar encontrar o horário e pegar as views
+                    views_antigo = df[df["horario"].dt.time == horario_atual]["views"].iloc[0]
+                except IndexError:
+                    # Caso nenhuma linha seja encontrada
+                    print(f"Nenhum dado encontrado para o horário {horario_atual}")
 
                 if views is not None:
                     # Buscar última entrada para esse vídeo
@@ -166,9 +178,9 @@ try:
                     mensagem = (
                         f"📊 Atualização de views:\n"
                         f"Vídeo: <b>{video['titulo']}</b>\n"
-                        f"ID: {video_id}\n"
                         f"Views: <b>{views}</b>\n"
-                        f"Desde a última: <b>{views_diff}</b> views\n"
+                        f"View Video Antigo: <b>{views_antigo}</b>\n"
+                        f"Views Ultimos 5 minutos: <b>{views_diff}</b> views\n"
                         f"Delta: <b>{delta:.2%}</b>\n"
                         f"Pace estimado para 24h: <b>{int(pace_24h)}</b> views\n"
                         f"Horário (BR): {agora_brasilia.strftime('%Y-%m-%d %H:%M:%S')}"
