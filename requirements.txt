@@ -1,3 +1,5 @@
 requests
 pytz
 pandas
+sqlalchemy
+psycopg2-binary
