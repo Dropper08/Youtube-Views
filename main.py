@@ -33,13 +33,13 @@ videos_table = Table(
     'videos', metadata,
     Column('video_id', String, primary_key=True),
     Column('titulo', String, nullable=False),
-    Column('criado_em', TIMESTAMP(timezone=True), nullable=False, default=now_brasilia)
+    Column('criado_em', TIMESTAMP(timezone=False), nullable=False, default=now_brasilia)
 )
 
 views_table = Table(
     'views', metadata,
     Column('video_id', String, ForeignKey('videos.video_id', ondelete="CASCADE"), primary_key=True),
-    Column('horario', TIMESTAMP(timezone=True), primary_key=True, default=now_brasilia),
+    Column('horario', TIMESTAMP(timezone=False), primary_key=True, default=now_brasilia),
     Column('views', Integer, nullable=False)
 )
 
