@@ -149,6 +149,7 @@ try:
 
                     else:
                         views_diff = 0
+                        delta = 0
                         pace_per_hour = 0
                         pace_24h = 0
 
