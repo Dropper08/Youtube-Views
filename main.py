@@ -72,7 +72,6 @@ def get_video_stats(video_id, api_key):
 
 # ✅ Insere os vídeos na tabela se não existirem
 with engine.begin() as conn:
-    conn.execute("ALTER DATABASE railway SET timezone TO 'America/Sao_Paulo';")
     for video in VIDEOS:
         stmt = pg_insert(videos_table).values(
             video_id=video['video_id'],
