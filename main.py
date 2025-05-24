@@ -24,6 +24,22 @@ API_KEY = 'AIzaSyACx1i4XGXJjRvQJukTTvZCvD6FNexhgmg'
 def now_brasilia():
     return datetime.now(pytz.timezone('America/Sao_Paulo'))
 
+def wait_time():
+    agora = now_brasilia()
+
+    minutos_atuais = agora.minute
+    minutos_proximo_bloco = ((minutos_atuais // WAIT) + 1) * WAIT
+
+    if minutos_proximo_bloco == 60:
+        proximo_bloco = (agora.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
+    else:
+        proximo_bloco = agora.replace(minute=minutos_proximo_bloco, second=0, microsecond=0)
+
+    espera_segundos = (proximo_bloco - agora).total_seconds()
+
+    print(f"Aguardando {espera_segundos:.1f} segundos para começar em {proximo_bloco.strftime('%H:%M:%S')}")
+    return espera_segundos
+
 # 🚀 Conexão com o banco
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()
@@ -33,13 +49,13 @@ videos_table = Table(
     'videos', metadata,
     Column('video_id', String, primary_key=True),
     Column('titulo', String, nullable=False),
-    Column('criado_em', TIMESTAMP(timezone=False), nullable=False, default=now_brasilia)
+    Column('criado_em', TIMESTAMP(timezone=True), nullable=False, default=now_brasilia)
 )
 
 views_table = Table(
     'views', metadata,
     Column('video_id', String, ForeignKey('videos.video_id', ondelete="CASCADE"), primary_key=True),
-    Column('horario', TIMESTAMP(timezone=False), primary_key=True, default=now_brasilia),
+    Column('horario', TIMESTAMP(timezone=True), primary_key=True, default=now_brasilia),
     Column('views', Integer, nullable=False)
 )
 
@@ -80,21 +96,22 @@ with engine.begin() as conn:
         conn.execute(stmt)
 
 # ⏰ Alinha para o próximo múltiplo de 5 minutos
+# brasilia_tz = pytz.timezone('America/Sao_Paulo')
+# agora = datetime.now(brasilia_tz)
+
+# minutos_atuais = agora.minute
+# minutos_proximo_bloco = ((minutos_atuais // WAIT) + 1) * WAIT
+
+# if minutos_proximo_bloco == 60:
+#     proximo_bloco = (agora.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
+# else:
+#     proximo_bloco = agora.replace(minute=minutos_proximo_bloco, second=0, microsecond=0)
+
+# espera_segundos = (proximo_bloco - agora).total_seconds()
+
+# print(f"Aguardando {espera_segundos:.1f} segundos para começar em {proximo_bloco.strftime('%H:%M:%S')}")
 brasilia_tz = pytz.timezone('America/Sao_Paulo')
-agora = datetime.now(brasilia_tz)
-
-minutos_atuais = agora.minute
-minutos_proximo_bloco = ((minutos_atuais // WAIT) + 1) * WAIT
-
-if minutos_proximo_bloco == 60:
-    proximo_bloco = (agora.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
-else:
-    proximo_bloco = agora.replace(minute=minutos_proximo_bloco, second=0, microsecond=0)
-
-espera_segundos = (proximo_bloco - agora).total_seconds()
-
-print(f"Aguardando {espera_segundos:.1f} segundos para começar em {proximo_bloco.strftime('%H:%M:%S')}")
-time.sleep(espera_segundos)
+time.sleep(wait_time())
 
 try:
     while True:
@@ -119,17 +136,17 @@ try:
                     print(f'Não conseguiu obter views para {video_id}')
 
         # 👉 Espera até o próximo múltiplo de 5 minutos
-        agora = datetime.now(brasilia_tz)
-        minutos_atuais = agora.minute
-        minutos_proximo_bloco = ((minutos_atuais // WAIT) + 1) * WAIT
-        if minutos_proximo_bloco == 60:
-            proximo_bloco = (agora.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
-        else:
-            proximo_bloco = agora.replace(minute=minutos_proximo_bloco, second=0, microsecond=0)
+        # agora = datetime.now(brasilia_tz)
+        # minutos_atuais = agora.minute
+        # minutos_proximo_bloco = ((minutos_atuais // WAIT) + 1) * WAIT
+        # if minutos_proximo_bloco == 60:
+        #     proximo_bloco = (agora.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1))
+        # else:
+        #     proximo_bloco = agora.replace(minute=minutos_proximo_bloco, second=0, microsecond=0)
 
-        espera_segundos = (proximo_bloco - agora).total_seconds()
-        print(f"Próxima coleta às {proximo_bloco.strftime('%H:%M:%S')} (em {espera_segundos:.1f} segundos)\n")
-        time.sleep(espera_segundos)
+        # espera_segundos = (proximo_bloco - agora).total_seconds()
+        # print(f"Próxima coleta às {proximo_bloco.strftime('%H:%M:%S')} (em {espera_segundos:.1f} segundos)\n")
+        time.sleep(wait_time())
 
 except KeyboardInterrupt:
     print("Parado pelo usuário.")
