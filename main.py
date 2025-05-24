@@ -128,7 +128,33 @@ try:
                 views = get_video_stats(video_id, API_KEY)
 
                 if views is not None:
-                    print(f'[{agora_brasilia.strftime("%Y-%m-%d %H:%M:%S")}] {video_id}: {views} views')
+                    # Buscar última entrada para esse vídeo
+                    last_view_row = conn.execute(
+                        text("""
+                            SELECT views, horario FROM views
+                            WHERE video_id = :video_id
+                            ORDER BY horario DESC
+                            LIMIT 1
+                        """), {'video_id': video_id}
+                    ).fetchone()
+
+                    if last_view_row:
+                        last_views, last_horario = last_view_row
+                        views_diff = views - last_views
+                        time_diff = (agora_brasilia - last_horario).total_seconds() / 3600  # horas
+
+                        if time_diff > 0:
+                            pace_per_hour = views_diff / time_diff
+                            pace_24h = pace_per_hour * 24
+                        else:
+                            pace_per_hour = 0
+                            pace_24h = 0
+                    else:
+                        views_diff = 0
+                        pace_per_hour = 0
+                        pace_24h = 0
+
+                    print(f'[{agora_brasilia.strftime("%Y-%m-%d %H:%M:%S")}] {video_id}: {views} views (+{views_diff} desde a última atualização)')
 
                     stmt = pg_insert(views_table).values(
                         video_id=video_id,
@@ -138,19 +164,20 @@ try:
 
                     conn.execute(stmt)
 
-                    # Envia mensagem para Telegram
                     mensagem = (
                         f"📊 Atualização de views:\n"
                         f"Vídeo: <b>{video['titulo']}</b>\n"
                         f"ID: {video_id}\n"
                         f"Views: <b>{views}</b>\n"
+                        f"Desde a última: <b>{views_diff}</b> views\n"
+                        f"Pace estimado para 24h: <b>{int(pace_24h)}</b> views\n"
                         f"Horário (BR): {agora_brasilia.strftime('%Y-%m-%d %H:%M:%S')}"
                     )
                     send_telegram_message(mensagem)
+
                 else:
                     print(f'Não conseguiu obter views para {video_id}')
 
-        # 👉 Espera até o próximo múltiplo de WAIT minutos
         time.sleep(wait_time())
 
 except KeyboardInterrupt:
