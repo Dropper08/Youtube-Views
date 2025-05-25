@@ -189,7 +189,7 @@ try:
                         f"Vídeo: <b>{video['titulo']}</b>\n"
                         f"Views: <b>{views} -> {previsao}</b>\n"
                         f"View Video Antigo: <b>{views_antigo} -> {VIEWS}</b>\n"
-                        f"Ultimos 5 minutos: <b>{views_diff} ({delta:.2%}</b>\n"
+                        f"Ultimos 5 minutos: <b>{views_diff} ({delta:.2%})</b>\n"
                         f"Pace estimado para 1h: <b>{int(pace_per_hour)}</b> views\n"
                         f"Views nessa hora: <b>{views - this_hour}</b>"
                     )
