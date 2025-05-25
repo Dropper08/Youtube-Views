@@ -138,6 +138,7 @@ try:
                     views_antigo = df[df["horario"].dt.time == horario_atual]["views"].iloc[0]
                 except IndexError:
                     # Caso nenhuma linha seja encontrada
+                    views_antigo = 0
                     print(f"Nenhum dado encontrado para o horário {horario_atual}")
 
                 if views is not None:
@@ -183,8 +184,11 @@ try:
                     ).on_conflict_do_nothing()
 
                     conn.execute(stmt)
-
-                    previsao = int(views/(views_antigo/VIEWS))
+                    if (views_antigo != 0):
+                        previsao = int(views/(views_antigo/VIEWS))
+                    else:
+                        previsao = 0
+                        
                     mensagem = (
                         f"📊 Atualização de views ({agora_brasilia.strftime('%Y-%m-%d %H:%M:%S')}):\n"
                         f"Vídeo: <b>{video['titulo']}</b>\n"
