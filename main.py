@@ -152,6 +152,7 @@ try:
                     #         END;
                     #     """)
                     # ).scalar()
+                    print(now())
                     
                     # Buscar última entrada para esse vídeo
                     last_two_rows= conn.execute(
