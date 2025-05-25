@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 WAIT = 5  # Tempo de espera entre as requisições (em minutos)
+VIEWS = 31654582
 
 # 🔑 Configuração do banco PostgreSQL (exemplo Railway)
 DATABASE_URL = 'postgresql://postgres:cLgkdZzJkpllnKxHvNniMgbKHVEgLeMC@postgres.railway.internal:5432/railway'  # coloque seus dados aqui
@@ -157,7 +158,7 @@ try:
                         views_diff = views - current_views
                         delta = (views_diff / (current_views - previous_views)) - 1
                         pace_per_hour = (views_diff / WAIT) * 60
-                        pace_24h = pace_per_hour * 24
+                        # pace_24h = pace_per_hour * 24
 
                     else:
                         views_diff = 0
@@ -175,14 +176,15 @@ try:
 
                     conn.execute(stmt)
 
+                    previsao = views/(views_antigo/VIEWS)
                     mensagem = (
                         f"📊 Atualização de views:\n"
                         f"Vídeo: <b>{video['titulo']}</b>\n"
-                        f"Views: <b>{views}</b>\n"
-                        f"View Video Antigo: <b>{views_antigo}</b>\n"
+                        f"Views: <b>{views} -> {previsao}</b>\n"
+                        f"View Video Antigo: <b>{views_antigo} -> {VIEWS}</b>\n"
                         f"Views Ultimos 5 minutos: <b>{views_diff}</b> views\n"
                         f"Delta: <b>{delta:.2%}</b>\n"
-                        f"Pace estimado para 24h: <b>{int(pace_24h)}</b> views\n"
+                        f"Pace estimado para 1h: <b>{int(pace_per_hour)}</b> views\n"
                         f"Horário (BR): {agora_brasilia.strftime('%Y-%m-%d %H:%M:%S')}"
                     )
                     send_telegram_message(mensagem)
