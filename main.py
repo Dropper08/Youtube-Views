@@ -145,10 +145,11 @@ try:
                     this_hour = conn.execute(
                         text("""
                             SELECT views FROM views
-                            WHERE horario >= date_trunc('hour', now() - interval '1 hour')
-                              AND horario < date_trunc('hour', now())
-                            ORDER BY horario DESC
-                            LIMIT 1;
+                            WHERE horario = CASE
+                                WHEN date_trunc('hour', now()) = now()
+                                    THEN date_trunc('hour', now() - interval '1 hour')
+                                ELSE date_trunc('hour', now())
+                            END;
                         """)
                     ).scalar()
                     
