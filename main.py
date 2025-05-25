@@ -141,6 +141,13 @@ try:
                     print(f"Nenhum dado encontrado para o horário {horario_atual}")
 
                 if views is not None:
+                    this_hour = conn.execute(
+                        text("""
+                            SELECT SUM(views) FROM views
+                            WHERE horario BETWEEN date_trunc('hour', now()) AND now();
+                        """)
+                    ).scalar()
+                    
                     # Buscar última entrada para esse vídeo
                     last_two_rows= conn.execute(
                         text("""
@@ -176,16 +183,15 @@ try:
 
                     conn.execute(stmt)
 
-                    previsao = views/(views_antigo/VIEWS)
+                    previsao = int(views/(views_antigo/VIEWS))
                     mensagem = (
-                        f"📊 Atualização de views:\n"
+                        f"📊 Atualização de views ({agora_brasilia.strftime('%Y-%m-%d %H:%M:%S')}):\n"
                         f"Vídeo: <b>{video['titulo']}</b>\n"
                         f"Views: <b>{views} -> {previsao}</b>\n"
                         f"View Video Antigo: <b>{views_antigo} -> {VIEWS}</b>\n"
-                        f"Views Ultimos 5 minutos: <b>{views_diff}</b> views\n"
-                        f"Delta: <b>{delta:.2%}</b>\n"
+                        f"Ultimos 5 minutos: <b>{views_diff} ({delta:.2%}</b>\n"
                         f"Pace estimado para 1h: <b>{int(pace_per_hour)}</b> views\n"
-                        f"Horário (BR): {agora_brasilia.strftime('%Y-%m-%d %H:%M:%S')}"
+                        f"Views nessa hora: <b>{this_hour}</b>"
                     )
                     send_telegram_message(mensagem)
 
