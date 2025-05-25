@@ -142,16 +142,16 @@ try:
                     print(f"Nenhum dado encontrado para o horário {horario_atual}")
 
                 if views is not None:
-                    this_hour = conn.execute(
-                        text("""
-                            SELECT views FROM views
-                            WHERE horario = CASE
-                                WHEN date_trunc('hour', now()) = now()
-                                    THEN date_trunc('hour', now() - interval '1 hour')
-                                ELSE date_trunc('hour', now())
-                            END;
-                        """)
-                    ).scalar()
+                    # this_hour = conn.execute(
+                    #     text("""
+                    #         SELECT views FROM views
+                    #         WHERE horario = CASE
+                    #             WHEN date_trunc('hour', now()) = now()
+                    #                 THEN date_trunc('hour', now() - interval '1 hour')
+                    #             ELSE date_trunc('hour', now())
+                    #         END;
+                    #     """)
+                    # ).scalar()
                     
                     # Buscar última entrada para esse vídeo
                     last_two_rows= conn.execute(
@@ -199,7 +199,7 @@ try:
                         f"View Video Antigo: <b>{views_antigo} -> {VIEWS}</b>\n"
                         f"Ultimos 5 minutos: <b>{views_diff} ({delta:.2%})</b>\n"
                         f"Pace estimado para 1h: <b>{int(pace_per_hour)}</b> views\n"
-                        f"Views nessa hora: <b>{views - this_hour}</b>"
+                        # f"Views nessa hora: <b>{views - this_hour}</b>"
                     )
                     send_telegram_message(mensagem)
 
