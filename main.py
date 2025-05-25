@@ -143,8 +143,8 @@ try:
                 if views is not None:
                     this_hour = conn.execute(
                         text("""
-                            SELECT SUM(views) FROM views
-                            WHERE horario BETWEEN date_trunc('hour', now()) AND now();
+                            SELECT COALESCE(views, 0) FROM views
+                            WHERE horario = date_trunc('hour', now());
                         """)
                     ).scalar()
                     
@@ -191,7 +191,7 @@ try:
                         f"View Video Antigo: <b>{views_antigo} -> {VIEWS}</b>\n"
                         f"Ultimos 5 minutos: <b>{views_diff} ({delta:.2%}</b>\n"
                         f"Pace estimado para 1h: <b>{int(pace_per_hour)}</b> views\n"
-                        f"Views nessa hora: <b>{this_hour + views}</b>"
+                        f"Views nessa hora: <b>{views - this_hour}</b>"
                     )
                     send_telegram_message(mensagem)
 
