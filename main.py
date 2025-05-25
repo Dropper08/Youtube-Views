@@ -144,9 +144,11 @@ try:
                 if views is not None:
                     this_hour = conn.execute(
                         text("""
-                            SELECT SUM(views) FROM views
+                            SELECT views FROM views
                             WHERE horario >= date_trunc('hour', now() - interval '1 hour')
-                              AND horario < date_trunc('hour', now());
+                              AND horario < date_trunc('hour', now())
+                            ORDER BY horario DESC
+                            LIMIT 1;
                         """)
                     ).scalar()
                     
