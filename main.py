@@ -143,8 +143,9 @@ try:
                 if views is not None:
                     this_hour = conn.execute(
                         text("""
-                            SELECT COALESCE(views, 0) FROM views
-                            WHERE horario = date_trunc('hour', now());
+                            SELECT SUM(views) FROM views
+                            WHERE horario >= date_trunc('hour', now() - interval '1 hour')
+                              AND horario < date_trunc('hour', now());
                         """)
                     ).scalar()
                     
