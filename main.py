@@ -16,7 +16,7 @@ DATABASE_URL = 'postgresql://postgres:cLgkdZzJkpllnKxHvNniMgbKHVEgLeMC@postgres.
 
 # 🎥 Lista dos vídeos que você quer monitorar
 VIDEOS = [
-    {'video_id': 'DZIASl9q90s', 'titulo': 'Beat Neymar, Win $500,000'}
+    {'video_id': 'hTSaweR8qMI', 'titulo': '$1 vs $500,000 Romantic Date'}
 ]
 
 # 🔑 API KEY do YouTube
