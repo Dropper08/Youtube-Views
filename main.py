@@ -24,7 +24,7 @@ API_KEY = 'AIzaSyACx1i4XGXJjRvQJukTTvZCvD6FNexhgmg'
 
 
 # Telegram bot config
-TELEGRAM_BOT_TOKEN = '8134403690:AAHU8PXdmMKI2Ag_kXHjRnO0ZpKvJlOejwQ'  # coloque o token do seu bot
+TELEGRAM_BOT_TOKEN = '7856073796:AAF9N72GwMRYcPd6AJ_LWrTFPXpLPOF6lhQ'  # coloque o token do seu bot
 TELEGRAM_CHAT_ID = '5423161617'  # coloque o chat id do destinatário
 
 def send_telegram_message(message: str):
