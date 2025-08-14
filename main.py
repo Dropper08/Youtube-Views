@@ -3,6 +3,7 @@ import time
 from datetime import datetime, timedelta
 import pytz
 import pandas as pd
+import os
 from sqlalchemy import create_engine, Column, String, Integer, TIMESTAMP, ForeignKey, Table, MetaData, insert, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import sessionmaker
@@ -20,7 +21,8 @@ VIDEOS = [
 ]
 
 # 🔑 API KEY do YouTube
-API_KEY = 'AIzaSyACx1i4XGXJjRvQJukTTvZCvD6FNexhgmg'
+# API_KEY = 'AIzaSyACx1i4XGXJjRvQJukTTvZCvD6FNexhgmg'
+API_KEY = os.getenv("API_KEY")
 
 
 # Telegram bot config
@@ -164,7 +166,7 @@ try:
                         """), {'video_id': video_id}
                     ).fetchall()
 
-                    if len(last_two_rows) == 2:
+                    if len(last_two_rows) == 2 and (current_views != previous_views):
                         current_views, current_time = last_two_rows[0]
                         previous_views, previous_time = last_two_rows[1]
                         
