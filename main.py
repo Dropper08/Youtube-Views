@@ -135,6 +135,7 @@ try:
                 video_id = video['video_id']
                 views = get_video_stats(video_id, API_KEY)
                 horario_atual = datetime.now(brasilia_tz).replace(second=0, microsecond=0).time()
+                horario_atual = (horario_atual - timedelta(hours=4)).time()
                 try:
                     # Tentar encontrar o horário e pegar as views
                     views_antigo = df[df["horario"].dt.time == horario_atual]["views"].iloc[0]
