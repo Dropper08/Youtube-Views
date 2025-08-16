@@ -134,7 +134,7 @@ try:
             for video in VIDEOS:
                 video_id = video['video_id']
                 views = get_video_stats(video_id, API_KEY)
-                horario_atual = datetime.now(brasilia_tz).replace(second=0, microsecond=0).time()
+                horario_atual = datetime.now(brasilia_tz).replace(second=0, microsecond=0)
                 horario_atual = (horario_atual - timedelta(hours=4)).time()
                 try:
                     # Tentar encontrar o horário e pegar as views
