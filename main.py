@@ -13,11 +13,11 @@ WAIT = 5  # Tempo de espera entre as requisições (em minutos)
 VIEWS = 31654582
 
 # 🔑 Configuração do banco PostgreSQL (exemplo Railway)
-DATABASE_URL = 'postgresql://postgres:cLgkdZzJkpllnKxHvNniMgbKHVEgLeMC@postgres.railway.internal:5432/railway'  # coloque seus dados aqui
+DATABASE_URL = API_KEY = os.getenv("DATABASE_URL")  # coloque seus dados aqui
 
 # 🎥 Lista dos vídeos que você quer monitorar
 VIDEOS = [
-    {'video_id': 'TDv56whosPQ', 'titulo': 'Prison'}
+    {'video_id': 'M2lX9XESvDE', 'titulo': 'Taylor Swift'}
 ]
 
 # 🔑 API KEY do YouTube
@@ -26,8 +26,8 @@ API_KEY = os.getenv("API_KEY")
 
 
 # Telegram bot config
-TELEGRAM_BOT_TOKEN = '7856073796:AAF9N72GwMRYcPd6AJ_LWrTFPXpLPOF6lhQ'  # coloque o token do seu bot
-TELEGRAM_CHAT_ID = '5423161617'  # coloque o chat id do destinatário
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # coloque o token do seu bot
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # coloque o chat id do destinatário
 
 def send_telegram_message(message: str):
     url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
@@ -178,7 +178,8 @@ try:
                         if (current_views != previous_views):
                             views_diff = views - current_views
                             delta = (views_diff / (current_views - previous_views)) - 1
-                            pace_per_hour = (views_diff / WAIT) * 60
+                            pace_per_24hour = (views_diff / WAIT) * 60 * 24
+                            # pace_per_hour = (views_diff / WAIT) * 60
                             # pace_24h = pace_per_hour * 24
 
                     print(f'[{agora_brasilia.strftime("%Y-%m-%d %H:%M:%S")}] {video_id}: {views} views (+{views_diff} desde a última atualização)')
@@ -198,11 +199,12 @@ try:
                     mensagem = (
                         f"📊 Atualização de views ({agora_brasilia.strftime('%Y-%m-%d %H:%M:%S')}):\n"
                         f"Vídeo: <b>{video['titulo']}</b>\n"
-                        f"Views: <b>{views} -> {previsao}</b>\n"
-                        # f"Views: <b>{views}</b>\n"
-                        f"View Video Antigo: <b>{views_antigo} -> {VIEWS}</b>\n"
+                        # f"Views: <b>{views} -> {previsao}</b>\n"
+                        f"Views: <b>{views}</b>\n"
+                        # f"View Video Antigo: <b>{views_antigo} -> {VIEWS}</b>\n"
                         f"Ultimos 5 minutos: <b>{views_diff} ({delta:.2%})</b>\n"
-                        f"Pace estimado para 1h: <b>{int(pace_per_hour)}</b> views\n"
+                        # f"Pace estimado para 1h: <b>{int(pace_per_hour)}</b> views\n"
+                        f"Pace estimado para 24h: <b>{int(pace_per_24hour)}</b> views\n"
                         # f"Views nessa hora: <b>{views - this_hour}</b>"
                     )
                     send_telegram_message(mensagem)
