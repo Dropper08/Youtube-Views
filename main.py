@@ -175,15 +175,17 @@ try:
                     if len(last_two_rows) == 2:
                         current_views, current_time = last_two_rows[0]
                         previous_views, previous_time = last_two_rows[1]
-                        if (current_views != previous_views):
-                            views_diff = views - current_views
-                            print(f'Current Views: {current_views}, Previous Views {previous_views}, Views Diff {views_diff}')
-                            delta = (views_diff / (current_views - previous_views)) - 1
-                            pace_per_24hour = (views_diff / WAIT) * 60 * 24
-                            # pace_per_hour = (views_diff / WAIT) * 60
-                            # pace_24h = pace_per_hour * 24
 
-                    print(f'[{agora_brasilia.strftime("%Y-%m-%d %H:%M:%S")}] {video_id}: {views} views (+{views_diff} desde a última atualização)')
+                        views_diff = views - current_views
+                        pace_per_24hour = (views_diff / WAIT) * 60 * 24
+                        # pace_per_hour = (views_diff / WAIT) * 60
+                        delta = 100
+                        if (current_views != previous_views):
+                            # print(f'Current Views: {current_views}, Previous Views {previous_views}, Views Diff {views_diff}')
+                            delta = (views_diff / (current_views - previous_views)) - 1
+
+
+                    print(f'[{agora_brasilia.strftime("%Y-%m-%d %H:%M:%S")}] {video_id}: {views} views ({views_diff} desde a última atualização)')
 
                     stmt = pg_insert(views_table).values(
                         video_id=video_id,
