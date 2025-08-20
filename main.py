@@ -177,6 +177,7 @@ try:
                         previous_views, previous_time = last_two_rows[1]
                         if (current_views != previous_views):
                             views_diff = views - current_views
+                            print(f'Current Views: {current_views}, Previous Views {previous_views}, Views Diff {views_diff}')
                             delta = (views_diff / (current_views - previous_views)) - 1
                             pace_per_24hour = (views_diff / WAIT) * 60 * 24
                             # pace_per_hour = (views_diff / WAIT) * 60
