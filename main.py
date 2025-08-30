@@ -177,8 +177,8 @@ try:
                         previous_views, previous_time = last_two_rows[1]
 
                         views_diff = views - current_views
-                        pace_per_24hour = (views_diff / WAIT) * 60 * 24
-                        # pace_per_hour = (views_diff / WAIT) * 60
+                        # pace_per_24hour = (views_diff / WAIT) * 60 * 24
+                        pace_per_hour = (views_diff / WAIT) * 60
                         delta = 100
                         if (current_views != previous_views):
                             # print(f'Current Views: {current_views}, Previous Views {previous_views}, Views Diff {views_diff}')
@@ -206,8 +206,8 @@ try:
                         f"Views: <b>{views}</b>\n"
                         # f"View Video Antigo: <b>{views_antigo} -> {VIEWS}</b>\n"
                         f"Ultimos 5 minutos: <b>{views_diff} ({delta:.2%})</b>\n"
-                        # f"Pace estimado para 1h: <b>{int(pace_per_hour)}</b> views\n"
-                        f"Pace estimado para 24h: <b>{int(pace_per_24hour)}</b> views\n"
+                        f"Pace estimado para 1h: <b>{int(pace_per_hour)}</b> views\n"
+                        # f"Pace estimado para 24h: <b>{int(pace_per_24hour)}</b> views\n"
                         # f"Views nessa hora: <b>{views - this_hour}</b>"
                     )
                     send_telegram_message(mensagem)
