@@ -17,7 +17,7 @@ DATABASE_URL = API_KEY = os.getenv("DATABASE_URL")  # coloque seus dados aqui
 
 # 🎥 Lista dos vídeos que você quer monitorar
 VIDEOS = [
-    {'video_id': 'M2lX9XESvDE', 'titulo': 'Taylor Swift'}
+    {'video_id': '_AbFXuGDRTs', 'titulo': 'Bunker'}
 ]
 
 # 🔑 API KEY do YouTube
